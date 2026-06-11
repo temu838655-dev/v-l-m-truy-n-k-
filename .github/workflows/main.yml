@@ -17,10 +17,21 @@ jobs:
       with:
         node-version: 20
 
-    - name: Chuan bi thu muc Web
+    # BƯỚC THAY THẾ: Tự động lùng sục tìm bằng được file index.html bất kể bạn để ở đâu
+    - name: Chuan bi thu muc Web Thong Minh
       run: |
         mkdir www
-        cp index.html www/index.html
+        echo "=== ĐANG TÌM FILE INDEX.HTML ==="
+        REAL_PATH=$(find . -iname "index.html" -not -path "*/www/*" | head -n 1)
+        
+        if [ -z "$REAL_PATH" ]; then
+          echo "❌ LỖI NGHIÊM TRỌNG: Không tìm thấy bất kỳ file nào tên là index.html trong kho của bạn!"
+          echo "Hãy chắc chắn rằng bạn không đặt tên sai thành index.html.txt hoặc viết sai chính tả."
+          exit 1
+        fi
+        
+        echo "✅ Đã tìm thấy file tại đường dẫn: $REAL_PATH"
+        cp "$REAL_PATH" www/index.html
 
     - name: Cai dat Capacitor
       run: |
