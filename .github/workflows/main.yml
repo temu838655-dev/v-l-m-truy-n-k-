@@ -1,4 +1,4 @@
-name: Tu Dong Xuat APK Vo Lam Chuan 2026
+name: Tu Dong Xuat APK Vo Lam Giai Phap Cuoi
 
 on:
   push:
@@ -17,21 +17,26 @@ jobs:
       with:
         node-version: 20
 
-    # BƯỚC THAY THẾ: Tự động lùng sục tìm bằng được file index.html bất kể bạn để ở đâu
-    - name: Chuan bi thu muc Web Thong Minh
+    # BƯỚC ĐỘT PHÁ: Tự động tải code trực tiếp từ link Raw, chấp mọi loại lỗi file trong kho
+    - name: Cuu nguy index.html bang cach tai truc tiep
       run: |
         mkdir www
-        echo "=== ĐANG TÌM FILE INDEX.HTML ==="
-        REAL_PATH=$(find . -iname "index.html" -not -path "*/www/*" | head -n 1)
+        echo "=== TIẾN HÀNH TẢI CODE GAME TRỰC TIẾP ==="
+        curl -sL "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/index.html" -o www/index.html
         
-        if [ -z "$REAL_PATH" ]; then
-          echo "❌ LỖI NGHIÊM TRỌNG: Không tìm thấy bất kỳ file nào tên là index.html trong kho của bạn!"
-          echo "Hãy chắc chắn rằng bạn không đặt tên sai thành index.html.txt hoặc viết sai chính tả."
-          exit 1
+        # Nếu tải từ nhánh hiện tại lỗi, tự động ép tải từ nhánh main
+        if [ ! -s www/index.html ] || grep -q "404: Not Found" www/index.html; then
+          echo "Thử tải lại từ nhánh mặc định..."
+          curl -sL "https://raw.githubusercontent.com/${{ github.repository }}/main/index.html" -o www/index.html
         fi
         
-        echo "✅ Đã tìm thấy file tại đường dẫn: $REAL_PATH"
-        cp "$REAL_PATH" www/index.html
+        # Kiểm tra cuối cùng xem file có ruột không
+        if [ ! -s www/index.html ] || grep -q "404: Not Found" www/index.html; then
+          echo "❌ Thất bại! File index.html chưa tồn tại hoặc kho của bạn vẫn đang ở chế độ Private."
+          exit 1
+        else
+          echo "✅ ĐÃ ÉP TẢI FILE INDEX.HTML THÀNH CÔNG!"
+        fi
 
     - name: Cai dat Capacitor
       run: |
