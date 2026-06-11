@@ -1,4 +1,4 @@
-name: Tu Dong Xuat APK Vo Lam
+name: Tu Dong Xuat APK Vo Lam Chuan 2026
 
 on:
   push:
@@ -7,19 +7,51 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Lay code ve may ao
+    # 1. Lấy code game của bạn về máy ảo
+    - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Dong goi HTML thanh APK
-      uses: ayodelesegun/html-to-apk-action@v1.1
+    # 2. Cài đặt môi trường Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        app-name: "Vo Lam Mini"
-        package-name: "com.volam.mini2026"
-        icon-path: ""
+        node-size: 20
 
+    # 3. Tạo thư mục chứa game chuẩn cho Capacitor
+    - name: Chuan bi thu muc Web
+      run: |
+        mkdir www
+        cp index.html www/
+
+    # 4. Cài đặt Capacitor để biến Web thành App Android
+    - name: Cai dat Capacitor
+      run: |
+        npm init -y
+        npm install @capacitor/core @capacitor/cli
+        npx cap init "Vo Lam Mini" "com.volam.mini2026" --web-dir=www
+        npm install @capacitor/android
+        npx cap add android
+        npx cap sync
+
+    # 5. Cài đặt Java để biên dịch APK
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    # 6. Chạy lệnh xây dựng file APK từ Android SDK gốc
+    - name: Xay dung file APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    # 7. Xuất file APK ra ngoài để bạn tải về điện thoại
     - name: Luu file APK de tai ve
       uses: actions/upload-artifact@v4
       with:
-        name: VoLamAPK
-        path: app-release.apk
+        name: VoLamAPK-Chuan
+        path: android/app/build/outputs/apk/debug/app-debug.apk
